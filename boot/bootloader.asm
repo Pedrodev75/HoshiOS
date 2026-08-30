@@ -1,5 +1,5 @@
 ; Based on code by lowwryzen.
-; Original source: <link>
+; Original source: https://github.com/lowwryzen/laurix
 ; Licensed under the MIT License.
 ; Modified for HoshiOS.
 [BITS 16]

@@ -12,8 +12,6 @@ static uint16_t cursor;
 
 static void vga_update_cursor(void);
 static void vga_scroll(void);
-static void vga_update_cursor(void);
-static void vga_scroll(void);
 static uint32_t vga_lock(void);
 static void vga_unlock(uint32_t flags);
 static uint32_t scroll_count = 0;

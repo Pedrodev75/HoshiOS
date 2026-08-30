@@ -7,7 +7,7 @@ global ir0
 global ir6
 global ir13
 global ir14
-extern ir8
+global ir8
 
 ir0:
     pushad

@@ -26,7 +26,7 @@ OBJS_ASM := $(ASMFILES:%.asm=$(BUILD)/%.o)
 
 DEPS := $(BUILD)/kernel.d $(OBJS_C:.o=.d)
 
-# Deve ser igual a KERNEL_SECTORS * 512 em core/bootloader.asm.
+# Deve ser igual a KERNEL_SECTORS * 512 em boot/bootloader.asm.
 MAX_KERNEL_SIZE = 24576
 
 all: compile
