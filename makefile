@@ -3,8 +3,9 @@ LD      = ld
 AS      = nasm
 OBJCOPY = objcopy
 
-CFLAGS  = -m32 -ffreestanding -fno-pic -fno-pie -fno-stack-protector -nostdlib -nostartfiles -c
+CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -fno-stack-protector -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -c
 LDFLAGS = -m elf_i386 -T linker.ld
+CPPFLAGS = -I. -Iinclude
 
 BUILD = build
 
@@ -12,11 +13,18 @@ BOOTLOADER = core/bootloader.asm
 KENTRY     = core/kernel_entry.asm
 KERNEL     = kernel.c
 
-CFILES   := $(wildcard include/*.c)
-ASMFILES := $(wildcard include/*.asm)
+CFILES := $(patsubst ./%,%,$(shell find . -type f -name '*.c' \
+	! -path './$(BUILD)/*' ! -path './$(KERNEL)'))
 
-OBJS_C   := $(patsubst include/%.c,$(BUILD)/%.o,$(CFILES))
-OBJS_ASM := $(patsubst include/%.asm,$(BUILD)/%.o,$(ASMFILES))
+ASMFILES := $(patsubst ./%,%,$(shell find . -type f -name '*.asm' \
+	! -path './$(BUILD)/*' \
+	! -path './$(BOOTLOADER)' \
+	! -path './$(KENTRY)'))
+
+OBJS_C   := $(CFILES:%.c=$(BUILD)/%.o)
+OBJS_ASM := $(ASMFILES:%.asm=$(BUILD)/%.o)
+
+DEPS := $(BUILD)/kernel.d $(OBJS_C:.o=.d)
 
 # Deve ser igual a KERNEL_SECTORS * 512 em core/bootloader.asm.
 MAX_KERNEL_SIZE = 24576
@@ -35,12 +43,14 @@ $(BUILD)/kernel_entry.o: $(KENTRY) | $(BUILD)
 	$(AS) -f elf32 $< -o $@
 
 $(BUILD)/kernel.o: $(KERNEL) | $(BUILD)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-$(BUILD)/%.o: include/%.c | $(BUILD)
-	$(CC) $(CFLAGS) $< -o $@
+$(BUILD)/%.o: %.c | $(BUILD)
+	mkdir -p $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $< -o $@
 
-$(BUILD)/%.o: include/%.asm | $(BUILD)
+$(BUILD)/%.o: %.asm | $(BUILD)
+	mkdir -p $(dir $@)
 	$(AS) -f elf32 $< -o $@
 
 $(BUILD)/kernel.elf: $(BUILD)/kernel_entry.o $(BUILD)/kernel.o $(OBJS_C) $(OBJS_ASM)
@@ -64,3 +74,7 @@ run: $(BUILD)/kernel.img
 
 clean:
 	rm -rf $(BUILD)
+
+.PHONY: all compile run clean
+
+-include $(DEPS)

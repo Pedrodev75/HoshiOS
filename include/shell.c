@@ -2,7 +2,7 @@
 #include "vga.h"
 #include "utypes.h"
 #include "io.h"
-#include "ata.h"
+#include "drivers/storage/ata.h"
 
 extern char __kernel_start;
 extern char __kernel_end;
