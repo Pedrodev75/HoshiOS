@@ -3,7 +3,7 @@
 
 #include "utypes.h"
 
-void pmm_init(void);
+int pmm_init(void);
 uint32_t pmm_alloc_frame(void);
 int pmm_free_frame(uint32_t address);
 

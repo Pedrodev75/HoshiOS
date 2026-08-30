@@ -49,7 +49,9 @@ static void redraw_input_line(void) {
 
 void lau_main() {
     vga_clear();
-    pmm_init();
+    if (pmm_init() != 0) {
+        kernel_panic("Falha ao inicializar PMM");
+    }
     vga_print("Bem-vindo ao Hoshi OS!\nDigite \"help\" pra ver os comandos disponiveis");
     vga_newline(2);
     vga_print("HoshiOS> ");
