@@ -4,6 +4,7 @@
 #include "io.h"
 #include "drivers/storage/ata.h"
 #include "kernel/memory/pmm.h"
+#include "kernel/memory/e820.h"
 
 extern char __kernel_start;
 extern char __kernel_end;
@@ -181,6 +182,39 @@ static void command_pmmtest(void) {
     vga_newline(1);
 }
 
+static void command_e820test(void) {
+    uint16_t count = e820_get_entry_count();
+
+    const volatile e820_entry_t *entries =
+        e820_get_entries();
+
+    vga_print("E820 entradas: ");
+    vga_print_uint(count);
+    vga_newline(1);
+
+    if (count == 0) {
+        vga_print("E820: mapa indisponivel");
+        vga_newline(1);
+        return;
+    }
+
+    for (uint16_t i = 0; i < count; i++) {
+        vga_print("#");
+        vga_print_uint(i);
+
+        vga_print(" base=0x");
+        vga_print_hex((uint32_t)entries[i].base);
+
+        vga_print(" tamanho=0x");
+        vga_print_hex((uint32_t)entries[i].length);
+
+        vga_print(" tipo=");
+        vga_print_uint(entries[i].type);
+
+        vga_newline(1);
+    }
+}
+
 static void command_color(const char *color) {
     int color_found = 0;
 
@@ -288,7 +322,7 @@ void shell_execute(const char *command) {
 
     if (string_equals(command, "help")) {
         command_found = 1;
-        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest");
+        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest, e820test");
         vga_newline(1);
     }
 
@@ -348,6 +382,11 @@ void shell_execute(const char *command) {
     if (string_equals(command, "pmmtest")) {
        command_found = 1;
        command_pmmtest();
+    }
+
+    if (string_equals(command, "e820test")) {
+       command_found = 1;
+       command_e820test();
     }
     
     if (!command_found) {
