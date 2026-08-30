@@ -11,7 +11,7 @@ BUILD = build
 
 BOOTLOADER = boot/bootloader.asm
 KENTRY     = boot/kernel_entry.asm
-KERNEL     = kernel.c
+KERNEL = kernel/kernel.c
 
 CFILES := $(patsubst ./%,%,$(shell find . -type f -name '*.c' \
 	! -path './$(BUILD)/*' ! -path './$(KERNEL)'))

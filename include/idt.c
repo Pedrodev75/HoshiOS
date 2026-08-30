@@ -1,5 +1,5 @@
 #include "idt.h"
-#include "panic.h"
+#include "kernel/panic.h"
 
 extern char __idt_start__;
 
