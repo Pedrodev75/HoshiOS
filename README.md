@@ -1,12 +1,12 @@
 # HoshiOS
 
-HoshiOS é um sistema operacional experimental para computadores x86 de 32 bits, desenvolvido do zero utilizando C e Assembly.
+HoshiOS é um sistema operacional experimental para computadores x86 de 32 bits, desenvolvido principalmente em C e Assembly.
 
 O projeto tem finalidade educacional e busca explorar conceitos de baixo nível como inicialização do processador, interrupções, comunicação com hardware, entrada de usuário e armazenamento em disco.
 
 ## Funcionalidades atuais
 
-- Bootloader próprio em modo real de 16 bits
+- Bootloader x86 adaptado para o HoshiOS em modo real de 16 bits
 - Transição para modo protegido de 32 bits
 - Kernel freestanding escrito em C
 - Tabela GDT
