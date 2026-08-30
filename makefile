@@ -9,8 +9,8 @@ CPPFLAGS = -I. -Iinclude
 
 BUILD = build
 
-BOOTLOADER = core/bootloader.asm
-KENTRY     = core/kernel_entry.asm
+BOOTLOADER = boot/bootloader.asm
+KENTRY     = boot/kernel_entry.asm
 KERNEL     = kernel.c
 
 CFILES := $(patsubst ./%,%,$(shell find . -type f -name '*.c' \
