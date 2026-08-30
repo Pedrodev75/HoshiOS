@@ -5,6 +5,8 @@
 #include "drivers/storage/ata.h"
 #include "kernel/memory/pmm.h"
 #include "kernel/memory/e820.h"
+#include "drivers/serial/serial.h"
+#include "panic.h"
 
 extern char __kernel_start;
 extern char __kernel_end;
@@ -215,6 +217,15 @@ static void command_e820test(void) {
     }
 }
 
+static void command_serialtest(void) {
+    serial_write(
+        "HoshiOS: teste da porta serial COM1\n"
+    );
+
+    vga_print("Mensagem enviada para COM1");
+    vga_newline(1);
+}
+
 static void command_color(const char *color) {
     int color_found = 0;
 
@@ -317,12 +328,13 @@ static void command_meminfo(void) {
 
 void shell_execute(const char *command) {
     int command_found = 0;
+    serial_init();
 
     if (command[0] == '\0') return;
 
     if (string_equals(command, "help")) {
         command_found = 1;
-        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest, e820test");
+        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest, e820test, serialtest");
         vga_newline(1);
     }
 
@@ -387,6 +399,11 @@ void shell_execute(const char *command) {
     if (string_equals(command, "e820test")) {
        command_found = 1;
        command_e820test();
+    }
+
+    if (string_equals(command, "serialtest")) {
+       command_found = 1;
+       command_serialtest();
     }
     
     if (!command_found) {
