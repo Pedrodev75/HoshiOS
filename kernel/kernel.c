@@ -5,7 +5,7 @@
 #include "kernel/panic.h"
 #include "keyboard.h"
 #include "mouse.h"
-#include "include/timer.h"
+#include "timer.h"
 #include "include/pic.h"
 
 #define INPUT_BUFFER_SIZE 128

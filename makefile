@@ -5,7 +5,7 @@ OBJCOPY = objcopy
 
 CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -fno-stack-protector -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -c
 LDFLAGS = -m elf_i386 -T linker.ld
-CPPFLAGS = -I. -Iinclude -Idrivers/video -Idrivers/input
+CPPFLAGS = -I. -Iinclude -Idrivers/video -Idrivers/input -Idrivers/timer
 
 BUILD = build
 
