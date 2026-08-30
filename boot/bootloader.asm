@@ -37,6 +37,8 @@ start:
     or al, 00000010b
     out 0x92, al
 
+    call detect_memory
+
 load_kernel:
     mov si, dap
 
@@ -52,6 +54,11 @@ load_kernel:
     or eax, 1
     mov cr0, eax
     jmp CODE_SEG:protected_mode_entry
+
+    E820_COUNT_ADDRESS equ 0x7FF0
+    E820_BUFFER_SEGMENT equ 0x8000
+    E820_ENTRY_SIZE     equ 24
+    E820_MAX_ENTRIES    equ 128
 
 gdt_start:
     dq 0
@@ -104,6 +111,68 @@ load_kernel_error:
     mov al, '1'
     int 0x10
     jmp $
+
+detect_memory:
+    pushad
+    push ds
+    push es
+
+    ; DS = 0 para acessar E820_COUNT_ADDRESS como endereço físico.
+    xor ax, ax
+    mov ds, ax
+    mov word [E820_COUNT_ADDRESS], 0
+
+    ; ES:DI aponta inicialmente para 0x8000:0x0000 = 0x80000.
+    mov ax, E820_BUFFER_SEGMENT
+    mov es, ax
+    xor di, di
+
+    ; EBX = 0 indica que esta é a primeira chamada E820.
+    xor ebx, ebx
+
+.next_entry:
+    ; Impede que a BIOS escreva mais entradas do que o buffer suporta.
+    cmp word [E820_COUNT_ADDRESS], E820_MAX_ENTRIES
+    jae .done
+
+    mov eax, 0xE820
+    mov edx, 0x534D4150
+    mov ecx, E820_ENTRY_SIZE
+
+    ; Habilita o campo de atributos estendidos quando suportado.
+    mov dword [es:di + 20], 1
+
+    int 0x15
+
+    ; Carry ligado indica falha ou fim não convencional do mapa.
+    jc .done
+
+    ; A BIOS precisa devolver a assinatura "SMAP".
+    cmp eax, 0x534D4150
+    jne .done
+
+    ; Uma entrada E820 precisa ter pelo menos os 20 bytes obrigatórios.
+    cmp ecx, 20
+    jb .done
+
+    ; Ignora entradas cujo tamanho seja zero.
+    mov eax, dword [es:di + 8]
+    or eax, dword [es:di + 12]
+    jz .continue
+
+    inc word [E820_COUNT_ADDRESS]
+    add di, E820_ENTRY_SIZE
+
+.continue:
+    ; EBX diferente de zero indica que ainda existem entradas.
+    test ebx, ebx
+    jnz .next_entry
+
+.done:
+    pop es
+    pop ds
+    popad
+    ret
 
 boot_drive db 0
 
