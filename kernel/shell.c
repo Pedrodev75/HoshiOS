@@ -14,6 +14,10 @@ extern char __kernel_end;
 #define KERNEL_MAX_SIZE 24576
 #define KERNEL_WARNING_SIZE 20480
 #define ATA_TEST_LBA 100
+#define PMM_STRESS_FRAME_COUNT 1024u
+#define PMM_STRESS_PAGE_SIZE 4096u
+
+static uint32_t pmm_stress_frames[PMM_STRESS_FRAME_COUNT];
 
 static int string_equals(const char *a, const char *b) {
     uint16_t i = 0;
@@ -184,6 +188,105 @@ static void command_pmmtest(void) {
     vga_newline(1);
 }
 
+static void command_pmmstress(void) {
+    uint32_t free_before = pmm_get_free_frames();
+    uint32_t used_before = pmm_get_used_frames();
+    uint32_t allocated_count = 0;
+    int allocation_failed = 0;
+    int release_failed = 0;
+
+    vga_print("PMM stress: iniciando teste de ");
+    vga_print_uint(PMM_STRESS_FRAME_COUNT);
+    vga_print(" paginas");
+    vga_newline(1);
+
+    if (free_before < PMM_STRESS_FRAME_COUNT) {
+        vga_print("PMM stress: memoria livre insuficiente");
+        vga_newline(1);
+        return;
+    }
+
+    for (uint32_t i = 0; i < PMM_STRESS_FRAME_COUNT; i++) {
+        uint32_t address = pmm_alloc_frame();
+
+        if (address == 0) {
+            vga_print("PMM stress: falha ao alocar pagina ");
+            vga_print_uint(i);
+            vga_newline(1);
+            allocation_failed = 1;
+            break;
+        }
+
+        pmm_stress_frames[allocated_count] = address;
+        allocated_count++;
+
+        if ((address % PMM_STRESS_PAGE_SIZE) != 0) {
+            vga_print("PMM stress: endereco desalinhado 0x");
+            vga_print_hex(address);
+            vga_newline(1);
+            allocation_failed = 1;
+            break;
+        }
+
+        for (uint32_t j = 0; j + 1u < allocated_count; j++) {
+            if (pmm_stress_frames[j] == address) {
+                vga_print("PMM stress: pagina repetida 0x");
+                vga_print_hex(address);
+                vga_newline(1);
+                allocation_failed = 1;
+                break;
+            }
+        }
+
+        if (allocation_failed) {
+            break;
+        }
+    }
+
+    if (!allocation_failed) {
+        if (pmm_get_free_frames() !=
+                free_before - PMM_STRESS_FRAME_COUNT ||
+            pmm_get_used_frames() !=
+                used_before + PMM_STRESS_FRAME_COUNT) {
+            vga_print("PMM stress: contadores incorretos apos alocacao");
+            vga_newline(1);
+            allocation_failed = 1;
+        } else {
+            vga_print("PMM stress: paginas validas e unicas");
+            vga_newline(1);
+        }
+    }
+
+    for (uint32_t i = 0; i < allocated_count; i++) {
+        if (pmm_free_frame(pmm_stress_frames[i]) != 0) {
+            release_failed = 1;
+        }
+    }
+
+    if (release_failed) {
+        vga_print("PMM stress: falha ao liberar paginas");
+        vga_newline(1);
+    }
+
+    if (pmm_get_free_frames() != free_before ||
+        pmm_get_used_frames() != used_before) {
+        vga_print("PMM stress: contadores nao foram restaurados");
+        vga_newline(1);
+        return;
+    }
+
+    if (allocation_failed || release_failed) {
+        vga_print("PMM stress: TESTE FALHOU");
+        vga_newline(1);
+        return;
+    }
+
+    vga_print("PMM stress: 1024 paginas liberadas");
+    vga_newline(1);
+    vga_print("PMM stress: SUCESSO");
+    vga_newline(1);
+}
+
 static void command_e820test(void) {
     uint16_t count = e820_get_entry_count();
 
@@ -334,7 +437,7 @@ void shell_execute(const char *command) {
 
     if (string_equals(command, "help")) {
         command_found = 1;
-        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest, e820test, serialtest");
+        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest, pmmstress, e820test, serialtest");
         vga_newline(1);
     }
 
@@ -394,6 +497,11 @@ void shell_execute(const char *command) {
     if (string_equals(command, "pmmtest")) {
        command_found = 1;
        command_pmmtest();
+    }
+
+    if (string_equals(command, "pmmstress")) {
+       command_found = 1;
+       command_pmmstress();
     }
 
     if (string_equals(command, "e820test")) {

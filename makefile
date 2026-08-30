@@ -3,7 +3,7 @@ LD      = ld
 AS      = nasm
 OBJCOPY = objcopy
 
-CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -fno-stack-protector -nostdlib -nostartfiles -Wall -Wextra -MMD -MP -c
+CFLAGS = -m32 -ffreestanding -fno-pic -fno-pie -fno-stack-protector -nostdlib -nostartfiles -Wall -Wextra -Os -MMD -MP -c
 LDFLAGS = -m elf_i386 -T linker.ld
 CPPFLAGS = -I. -Iinclude -Iarch/x86 -Idrivers/video -Idrivers/input -Idrivers/timer
 
@@ -70,7 +70,7 @@ $(BUILD)/kernel.img: $(BUILD)/bootloader.bin $(BUILD)/kernel.bin
 	truncate -s 1048576 $@
 
 run: $(BUILD)/kernel.img
-	qemu-system-i386 -m 32M -drive format=raw,file=$(BUILD)/kernel.img -serial stdio
+	qemu-system-i386 -m 1024M -drive format=raw,file=build/kernel.img -serial stdio
 clean:
 	rm -rf $(BUILD)
 
