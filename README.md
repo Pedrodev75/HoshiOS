@@ -65,7 +65,7 @@ HoshiOS/
 
 ## Requisitos
 
-O projeto foi desenvolvido para ser compilado em um ambiente Linux ou WSL.
+O projeto foi desenvolvido para ser compilado em um ambiente Linux WSL.
 
 São necessários:
 
