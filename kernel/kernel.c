@@ -7,6 +7,7 @@
 #include "mouse.h"
 #include "timer.h"
 #include "pic.h"
+#include "kernel/memory/pmm.h"
 
 #define INPUT_BUFFER_SIZE 128
 
@@ -48,6 +49,7 @@ static void redraw_input_line(void) {
 
 void lau_main() {
     vga_clear();
+    pmm_init();
     vga_print("Bem-vindo ao Hoshi OS!\nDigite \"help\" pra ver os comandos disponiveis");
     vga_newline(2);
     vga_print("HoshiOS> ");
