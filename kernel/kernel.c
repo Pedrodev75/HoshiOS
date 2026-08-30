@@ -3,10 +3,10 @@
 #include "include/idt.h"
 #include "kernel/shell.h"
 #include "kernel/panic.h"
-#include "include/keyboard.h"
+#include "keyboard.h"
+#include "mouse.h"
 #include "include/timer.h"
 #include "include/pic.h"
-#include "include/mouse.h"
 
 #define INPUT_BUFFER_SIZE 128
 
