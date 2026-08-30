@@ -2,7 +2,7 @@
 
 HoshiOS é um sistema operacional experimental para computadores x86 de 32 bits, desenvolvido principalmente em C e Assembly.
 
-O projeto tem finalidade educacional e busca explorar conceitos de baixo nível como inicialização do processador, interrupções, comunicação com hardware, entrada de usuário e armazenamento em disco.
+O projeto tem finalidade educacional e busca explorar conceitos de baixo nível como inicialização do processador, interrupções, comunicação com hardware, gerenciamento de memória, entrada de usuário e armazenamento em disco.
 
 ## Funcionalidades atuais
 
@@ -13,11 +13,14 @@ O projeto tem finalidade educacional e busca explorar conceitos de baixo nível 
 - Tabela IDT com tratamento básico de exceções
 - Controlador de interrupções PIC
 - Temporizador PIT
-- Saída de texto em modo VGA
-- Cursor de hardware VGA
+- Saída de texto e cursor em modo VGA
 - Teclado PS/2 por polling
 - Mouse PS/2 por interrupção
 - Shell interativo
+- Detecção do mapa de memória pela BIOS usando E820
+- Gerenciador de memória física com páginas de 4 KiB
+- Bitmap do PMM dimensionado conforme a memória detectada
+- Proteção das regiões reservadas, do kernel e do próprio bitmap
 - Driver ATA PIO com endereçamento LBA28
 - Leitura e escrita de setores
 - Detecção da capacidade do disco com ATA IDENTIFY
@@ -25,8 +28,6 @@ O projeto tem finalidade educacional e busca explorar conceitos de baixo nível 
 - Verificação do limite de tamanho do kernel durante a compilação
 
 ## Comandos disponíveis
-
-O shell do HoshiOS atualmente oferece os seguintes comandos:
 
 | Comando | Descrição |
 |---|---|
@@ -41,6 +42,8 @@ O shell do HoshiOS atualmente oferece os seguintes comandos:
 | `meminfo` | Mostra o tamanho atual do kernel |
 | `version` | Mostra a versão do HoshiOS |
 | `atatest` | Testa o driver ATA PIO |
+| `e820test` | Mostra as regiões de memória detectadas pela BIOS |
+| `pmmtest` | Testa a alocação e liberação de páginas físicas |
 
 ## Estrutura do projeto
 
@@ -49,7 +52,7 @@ HoshiOS/
 ├── arch/
 │   └── x86/              # IDT, PIC, interrupções e operações de I/O
 ├── boot/
-│   ├── bootloader.asm    # Bootloader de 16 bits
+│   ├── bootloader.asm    # Bootloader e detecção de memória E820
 │   └── kernel_entry.asm  # Entrada e preparação do kernel
 ├── drivers/
 │   ├── input/            # Teclado e mouse PS/2
@@ -57,7 +60,11 @@ HoshiOS/
 │   ├── timer/            # Temporizador PIT
 │   └── video/            # Driver VGA
 ├── include/              # Tipos e cabeçalhos compartilhados
-├── kernel/               # Kernel, shell e tratamento de falhas
+├── kernel/
+│   ├── memory/           # Mapa E820 e gerenciador de memória física
+│   ├── kernel.c          # Inicialização principal
+│   ├── panic.c           # Tratamento de falhas fatais
+│   └── shell.c           # Shell e comandos
 ├── third_party/          # Licenças de código de terceiros
 ├── linker.ld             # Script do linker
 └── makefile              # Sistema de compilação
@@ -65,7 +72,7 @@ HoshiOS/
 
 ## Requisitos
 
-O projeto foi desenvolvido para ser compilado em um ambiente Linux WSL.
+O projeto foi desenvolvido para ser compilado em Linux ou WSL.
 
 São necessários:
 
@@ -116,7 +123,7 @@ make run
 Também é possível executar a imagem manualmente:
 
 ```bash
-qemu-system-i386 -drive format=raw,file=build/kernel.img
+qemu-system-i386 -m 32M -drive format=raw,file=build/kernel.img
 ```
 
 Para remover os arquivos gerados:
@@ -125,18 +132,32 @@ Para remover os arquivos gerados:
 make clean
 ```
 
+## Gerenciamento de memória
+
+Durante o boot, o HoshiOS consulta a BIOS por meio da interface E820. O kernel utiliza o mapa recebido para liberar somente regiões classificadas como utilizáveis.
+
+O gerenciador de memória física divide a RAM em páginas de 4 KiB e mantém um bitmap com o estado de cada página. Permanecem protegidos:
+
+- o primeiro 1 MiB de memória;
+- as regiões reservadas pela BIOS;
+- a memória ocupada pelo kernel;
+- o próprio bitmap do gerenciador.
+
+O PMM oferece alocação e liberação de páginas físicas completas. A alocação de tamanhos menores e arbitrários será responsabilidade do futuro heap do kernel.
+
 ## Estado do projeto
 
 O HoshiOS ainda está em desenvolvimento e não deve ser utilizado como sistema operacional para uso cotidiano ou armazenamento de dados importantes.
 
-Atualmente, o projeto executa em modo kernel único, sem proteção entre processos, multitarefa, memória virtual ou sistema de arquivos completo.
+Atualmente, o projeto executa em modo kernel único. Já possui gerenciamento de páginas físicas, mas ainda não implementa heap, paginação, memória virtual, proteção entre processos, multitarefa ou sistema de arquivos completo.
 
 ## Próximos objetivos
 
+- Implementar um heap do kernel com `kmalloc` e `kfree`
+- Implementar paginação e memória virtual
 - Desenvolver o HoshiFS
 - Criar uma camada genérica para dispositivos de bloco
 - Adicionar comandos para visualizar e manipular arquivos
-- Implementar gerenciamento de memória
 - Melhorar o suporte ao teclado
 - Adicionar uma biblioteca padrão básica para o kernel
 - Criar testes automatizados
@@ -145,7 +166,7 @@ Atualmente, o projeto executa em modo kernel único, sem proteção entre proces
 
 ## Licença
 
-O código original do HoshiOS é distribuído sob a licença **GNU General Public License versão 3 ou posterior**.
+O código original do HoshiOS é distribuído sob a **GNU General Public License versão 3 ou posterior**.
 
 Consulte [LICENSE.md](LICENSE.md) para ler a licença completa.
 
