@@ -70,7 +70,7 @@ $(BUILD)/kernel.img: $(BUILD)/bootloader.bin $(BUILD)/kernel.bin
 	truncate -s 1048576 $@
 
 run: $(BUILD)/kernel.img
-	qemu-system-i386 -drive format=raw,file=build/kernel.img
+	qemu-system-i386 -m 32M -drive  format=raw,file=build/kernel.img
 
 clean:
 	rm -rf $(BUILD)

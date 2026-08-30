@@ -3,6 +3,7 @@
 #include "utypes.h"
 #include "io.h"
 #include "drivers/storage/ata.h"
+#include "kernel/memory/pmm.h"
 
 extern char __kernel_start;
 extern char __kernel_end;
@@ -108,6 +109,75 @@ static void command_atatest(void) {
     }
 
     vga_print("ATA: escrita, flush e leitura no LBA 100 OK");
+    vga_newline(1);
+}
+
+static void command_pmmtest(void) {
+    uint32_t free_before = pmm_get_free_frames();
+    uint32_t used_before = pmm_get_used_frames();
+    uint32_t first_frame = pmm_alloc_frame();
+    uint32_t second_frame = pmm_alloc_frame();
+
+    vga_print("PMM total: ");
+    vga_print_uint(pmm_get_total_frames());
+    vga_print(" paginas");
+    vga_newline(1);
+
+    vga_print("PMM livres: ");
+    vga_print_uint(pmm_get_free_frames());
+    vga_print(" paginas");
+    vga_newline(1);
+
+    vga_print("PMM ocupadas: ");
+    vga_print_uint(pmm_get_used_frames());
+    vga_print(" paginas");
+    vga_newline(1);
+    
+    if (first_frame == 0) {
+        vga_print("PMM: falha na primeira alocacao");
+        vga_newline(1);
+        return;
+    }
+
+    if (second_frame == 0) {
+        pmm_free_frame(first_frame);
+
+        vga_print("PMM: falha na segunda alocacao");
+        vga_newline(1);
+        return;
+    }
+
+    if (first_frame == second_frame) {
+        vga_print("PMM: paginas repetidas");
+        vga_newline(1);
+        return;
+    }
+
+    vga_print("PMM pagina 1: 0x");
+    vga_print_hex(first_frame);
+    vga_newline(1);
+
+    vga_print("PMM pagina 2: 0x");
+    vga_print_hex(second_frame);
+    vga_newline(1);
+
+    int first_result = pmm_free_frame(first_frame);
+    int second_result = pmm_free_frame(second_frame);
+
+    if (first_result != 0 || second_result != 0) {
+        vga_print("PMM: Teste falhou");
+        vga_newline(1);
+        return;
+    }
+
+    if (pmm_get_free_frames() != free_before || pmm_get_used_frames() != used_before) {
+
+        vga_print("PMM: contadores nao foram restaurados");
+        vga_newline(1);
+        return;
+    }
+
+    vga_print("PMM: Teste concluido");
     vga_newline(1);
 }
 
@@ -218,7 +288,7 @@ void shell_execute(const char *command) {
 
     if (string_equals(command, "help")) {
         command_found = 1;
-        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest");
+        vga_print("Comandos: help, about, clear, echo, reboot, sysinfo, ascii, color, meminfo, version, atatest, pmmtest");
         vga_newline(1);
     }
 
@@ -273,6 +343,11 @@ void shell_execute(const char *command) {
     if (string_equals(command, "atatest")) {
        command_found = 1;
        command_atatest();
+    }
+
+    if (string_equals(command, "pmmtest")) {
+       command_found = 1;
+       command_pmmtest();
     }
     
     if (!command_found) {
