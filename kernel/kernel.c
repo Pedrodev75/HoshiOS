@@ -1,5 +1,5 @@
 #include "include/io.h"
-#include "include/vga.h"
+#include "vga.h"
 #include "include/idt.h"
 #include "kernel/shell.h"
 #include "kernel/panic.h"
