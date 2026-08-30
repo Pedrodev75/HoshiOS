@@ -1,3 +1,7 @@
+; Based on code by lowwryzen.
+; Original source: <link>
+; Licensed under the MIT License.
+; Modified for HoshiOS.
 [BITS 16]
 [ORG 0x7C00]
 
