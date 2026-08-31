@@ -31,6 +31,14 @@ O projeto tem finalidade educacional e busca explorar conceitos de baixo nível 
 - Teste de estresse do gerenciador de memória física
 - Compatibilidade testada no QEMU e Oracle VirtualBox
 
+## HoshiIK
+
+O kernel interno do HoshiOS é chamado **HoshiIK**, abreviação de **Hoshi Internal Kernel**.
+
+O HoshiIK constitui o núcleo do sistema e é responsável por inicialização, interrupções, gerenciamento de memória, tratamento de falhas e comunicação com os drivers.
+
+O desenvolvimento de novas funcionalidades está temporariamente pausado. A versão atual permanece experimental e voltada para estudos de sistemas operacionais.
+
 ## Comandos disponíveis
 
 | Comando | Descrição |
