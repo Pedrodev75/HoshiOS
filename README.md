@@ -26,6 +26,10 @@ O projeto tem finalidade educacional e busca explorar conceitos de baixo nível 
 - Detecção da capacidade do disco com ATA IDENTIFY
 - Tratamento de kernel panic
 - Verificação do limite de tamanho do kernel durante a compilação
+- Driver de comunicação serial COM1
+- Logs de inicialização e kernel panic pela porta serial
+- Teste de estresse do gerenciador de memória física
+- Compatibilidade testada no QEMU e Oracle VirtualBox
 
 ## Comandos disponíveis
 
@@ -44,6 +48,8 @@ O projeto tem finalidade educacional e busca explorar conceitos de baixo nível 
 | `atatest` | Testa o driver ATA PIO |
 | `e820test` | Mostra as regiões de memória detectadas pela BIOS |
 | `pmmtest` | Testa a alocação e liberação de páginas físicas |
+| `pmmstress` | Aloca, verifica e libera 1024 páginas físicas |
+| `serialtest` | Envia uma mensagem de teste pela porta serial COM1 |
 
 ## Estrutura do projeto
 
@@ -56,6 +62,7 @@ HoshiOS/
 │   └── kernel_entry.asm  # Entrada e preparação do kernel
 ├── drivers/
 │   ├── input/            # Teclado e mouse PS/2
+│   ├── serial/           # Comunicação e logs pela porta serial COM1
 │   ├── storage/          # Driver ATA PIO
 │   ├── timer/            # Temporizador PIT
 │   └── video/            # Driver VGA
@@ -109,6 +116,11 @@ A imagem de disco será criada em:
 ```text
 build/kernel.img
 ```
+
+Para executar com uma quantidade diferente de memória:
+
+```bash
+make run QEMU_MEMORY=1024M
 
 O processo de compilação também verifica se o kernel ultrapassou o limite suportado pelo bootloader.
 

@@ -9,6 +9,8 @@ CPPFLAGS = -I. -Iinclude -Iarch/x86 -Idrivers/video -Idrivers/input -Idrivers/ti
 
 BUILD = build
 
+QEMU_MEMORY ?= 32M
+
 BOOTLOADER = boot/bootloader.asm
 KENTRY     = boot/kernel_entry.asm
 KERNEL = kernel/kernel.c
@@ -70,7 +72,8 @@ $(BUILD)/kernel.img: $(BUILD)/bootloader.bin $(BUILD)/kernel.bin
 	truncate -s 1048576 $@
 
 run: $(BUILD)/kernel.img
-	qemu-system-i386 -m 1024M -drive format=raw,file=build/kernel.img -serial stdio
+	qemu-system-i386 -m $(QEMU_MEMORY) -drive format=raw,file=$(BUILD)/kernel.img -serial stdio
+
 clean:
 	rm -rf $(BUILD)
 
